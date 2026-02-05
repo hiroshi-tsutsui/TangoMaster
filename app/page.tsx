@@ -333,9 +333,10 @@ export default function Home() {
             <div className="flex gap-2">
                 <button
                   onClick={() => setShowProModal(true)}
-                  className={`hidden sm:block text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${isPro ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-transparent shadow-md' : (isDark ? 'text-yellow-400 border-yellow-400 hover:bg-yellow-900/30' : 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100')}`}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${isPro ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-transparent shadow-md' : (isDark ? 'text-yellow-400 border-yellow-400 hover:bg-yellow-900/30' : 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100')}`}
                 >
-                  {isPro ? 'PRO MEMBER' : 'Pro'}
+                  <span className="hidden sm:inline">{isPro ? 'PRO MEMBER' : 'Pro'}</span>
+                  <span className="sm:hidden">{isPro ? '👑' : 'Pro'}</span>
                 </button>
                 <button
                   onClick={gameMode === 'speedrun' ? endSpeedRun : startSpeedRun}
@@ -438,7 +439,7 @@ export default function Home() {
 
         {/* Main Card */}
         <main className={`w-full max-w-md rounded-2xl shadow-2xl p-8 text-center min-h-[400px] flex flex-col justify-between transition-all duration-300 ${currentTheme.cardBg} ${gameMode === 'speedrun' ? 'border-red-500 ring-2 ring-red-500/50' : ''}`}>
-          <div className="flex-grow flex flex-col justify-center items-center relative">
+          <div key={currentIndex} className="flex-grow flex flex-col justify-center items-center relative animate-slide-in">
             <span className={`absolute top-0 right-0 text-xs font-mono opacity-30`}>
               #{currentIndex + 1} / {currentList.length}
             </span>
