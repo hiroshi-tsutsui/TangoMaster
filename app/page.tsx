@@ -60,6 +60,12 @@ export default function Home() {
     setIsRevealed(false);
   };
 
+  const handleShare = () => {
+    const text = `🔥 I'm on a ${streak}-day streak learning English on TangoMaster! Can you beat me? #TangoMaster #Study`;
+    const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
+    window.open(url, '_blank');
+  };
+
   // Init Effect
   useEffect(() => {
     setMounted(true);
@@ -114,17 +120,21 @@ export default function Home() {
         <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center max-w-2xl mx-auto right-0">
           <div>
             <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.4</p>
+            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.5</p>
           </div>
 
           <div className="flex items-center gap-4">
             {/* Streak Display */}
-            <div className={`flex items-center gap-1 font-bold ${streakUpdatedToday ? 'text-orange-500' : 'text-gray-400'}`} title="Daily Streak">
+            <button 
+              onClick={handleShare}
+              className={`flex items-center gap-1 font-bold transition-transform hover:scale-105 active:scale-95 cursor-pointer ${streakUpdatedToday ? 'text-orange-500' : 'text-gray-400'}`} 
+              title="Share your streak!"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-5 h-5 ${streakUpdatedToday ? 'animate-pulse' : ''}`}>
                 <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clipRule="evenodd" />
               </svg>
               <span>{streak}</span>
-            </div>
+            </button>
 
             <button 
               onClick={toggleDarkMode}
