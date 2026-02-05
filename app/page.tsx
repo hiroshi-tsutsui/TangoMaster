@@ -12,9 +12,17 @@ export default function Home() {
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
   const [streakUpdatedToday, setStreakUpdatedToday] = useState(false);
+  const [hardWords, setHardWords] = useState<Set<string>>(new Set());
 
-  const currentList = VOCAB_DATA[category];
-  const currentItem = currentList[currentIndex];
+  const getReviewList = () => {
+    const allWords = Object.values(VOCAB_DATA).flat();
+    const uniqueWords = new Map();
+    allWords.forEach(w => uniqueWords.set(w.word, w));
+    return Array.from(uniqueWords.values()).filter((w: any) => hardWords.has(w.word));
+  };
+
+  const currentList = category === 'Review' ? getReviewList() : VOCAB_DATA[category];
+  const currentItem = currentList[currentIndex] || { word: "All Done!", meaning: "No words left to review.", example: "Great job!" };
 
   const getTodayString = () => new Date().toISOString().split('T')[0];
   const calculateLevel = (points: number) => Math.floor(points / 100) + 1;
@@ -62,6 +70,18 @@ export default function Home() {
     setXp(newXp);
     localStorage.setItem('vocab_xp', newXp.toString());
 
+    // Hard Words Logic
+    const newHardWords = new Set(hardWords);
+    if (!known) {
+      newHardWords.add(currentItem.word);
+    } else {
+      if (newHardWords.has(currentItem.word)) {
+        newHardWords.delete(currentItem.word);
+      }
+    }
+    setHardWords(newHardWords);
+    localStorage.setItem('vocab_hard_words', JSON.stringify(Array.from(newHardWords)));
+
     // Analytics (MVP)
     console.log('[Analytics] Word Answered:', { 
       word: currentItem.word, 
@@ -70,7 +90,32 @@ export default function Home() {
       timestamp: new Date().toISOString() 
     });
 
-    const nextIndex = (currentIndex + 1) % currentList.length;
+    // If in Review mode and list is empty after removal, switch back to Standard
+    if (category === 'Review' && known && newHardWords.size === 0) {
+        setCategory('Standard');
+        setCurrentIndex(0);
+        setIsRevealed(false);
+        updateStreak();
+        return;
+    }
+
+    // Special case for Review mode: if we removed a word, the current index might be out of bounds or pointing to a different word
+    let nextIndex = (currentIndex + 1) % currentList.length;
+    
+    // If we just removed the current item (known=true) in Review mode
+    if (category === 'Review' && known) {
+        // The list is now smaller. 
+        // We can just stay at current index (which is now the next word), or wrap if needed.
+        // But currentList is stale in this render cycle.
+        // We will trust React to re-render with the new list.
+        // However, we should be careful about index bounds.
+        if (currentIndex >= newHardWords.size) {
+            nextIndex = 0;
+        } else {
+            nextIndex = currentIndex;
+        }
+    }
+
     setCurrentIndex(nextIndex);
     setIsRevealed(false);
     updateStreak();
@@ -108,9 +153,11 @@ export default function Home() {
     const savedStreak = parseInt(localStorage.getItem('vocab_streak') || '0', 10);
     const savedXp = parseInt(localStorage.getItem('vocab_xp') || '0', 10);
     const lastDate = localStorage.getItem('vocab_last_date');
+    const savedHardWords = JSON.parse(localStorage.getItem('vocab_hard_words') || '[]');
     const today = getTodayString();
 
     setXp(savedXp);
+    setHardWords(new Set(savedHardWords));
 
     if (lastDate === today) {
       setStreak(savedStreak);
@@ -144,9 +191,10 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRevealed, currentIndex, category, xp]); 
+  }, [isRevealed, currentIndex, category, xp, hardWords]); 
 
   const level = calculateLevel(xp);
+  const categories = ['Review', ...Object.keys(VOCAB_DATA)].filter(cat => cat !== 'Review' || hardWords.size > 0);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${mounted && darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
@@ -157,7 +205,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div>
               <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.9</p>
+              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.10</p>
             </div>
             <button 
               onClick={() => alert("TangoMaster Pro: Ad-free, Offline Mode, and AI Tutor coming soon!")}
@@ -206,7 +254,7 @@ export default function Home() {
 
         {/* Category Selector */}
         <div className="mb-6 flex gap-2 overflow-x-auto max-w-full pb-2">
-          {Object.keys(VOCAB_DATA).map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => handleCategoryChange(cat)}
@@ -217,6 +265,11 @@ export default function Home() {
               }`}
             >
               {cat}
+              {cat === 'Review' && (
+                <span className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                  {hardWords.size}
+                </span>
+              )}
             </button>
           ))}
         </div>
