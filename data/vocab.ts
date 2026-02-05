@@ -2,11 +2,12 @@ export type VocabItem = {
   word: string;
   meaning: string;
   example: string;
+  mnemonic?: string;
 };
 
 export const VOCAB_DATA: Record<string, VocabItem[]> = {
   'Basic': [
-    { word: 'Provide', meaning: '供給する', example: 'They provided us with food.' },
+    { word: 'Provide', meaning: '供給する', example: 'They provided us with food.', mnemonic: "Pro-vide. Provide pro video equipment." },
     { word: 'Individual', meaning: '個々の', example: 'Each individual has rights.' },
     { word: 'Environment', meaning: '環境', example: 'Protect the environment.' },
     { word: 'Potential', meaning: '潜在的な', example: 'He has great potential.' },
@@ -18,8 +19,8 @@ export const VOCAB_DATA: Record<string, VocabItem[]> = {
     { word: 'Obvious', meaning: '明らかな', example: 'It was obvious that he was lying.' },
   ],
   'Standard': [
-    { word: 'Ambiguous', meaning: '曖昧な', example: 'His reply was ambiguous.' },
-    { word: 'Inevitable', meaning: '避けられない', example: 'War was inevitable.' },
+    { word: 'Ambiguous', meaning: '曖昧な', example: 'His reply was ambiguous.', mnemonic: "Am-big-uous. I am big? Or small? It's ambiguous." },
+    { word: 'Inevitable', meaning: '避けられない', example: 'War was inevitable.', mnemonic: "In-evita-ble. Even Evita couldn't avoid it." },
     { word: 'Simultaneous', meaning: '同時の', example: 'Simultaneous interpretation.' },
     { word: 'Reluctant', meaning: '気が進まない', example: 'He was reluctant to go.' },
     { word: 'Subsequent', meaning: 'その後の', example: 'Subsequent events proved him wrong.' },
@@ -30,16 +31,16 @@ export const VOCAB_DATA: Record<string, VocabItem[]> = {
     { word: 'Relieve', meaning: '和らげる', example: 'Relieve pain.' },
   ],
   'Advanced': [
-    { word: 'Deteriorate', meaning: '悪化する', example: 'His health deteriorated.' },
-    { word: 'Indifferent', meaning: '無関心な', example: 'He was indifferent to politics.' },
-    { word: 'Reproach', meaning: '非難する', example: 'Don’t reproach yourself.' },
-    { word: 'Versatile', meaning: '多才な', example: 'A versatile actor.' },
-    { word: 'Eloquent', meaning: '雄弁な', example: 'An eloquent speech.' },
-    { word: 'Superfluous', meaning: '余分な', example: 'Superfluous details.' },
-    { word: 'Meticulous', meaning: '綿密な', example: 'He is meticulous about his work.' },
-    { word: 'Benevolent', meaning: '慈悲深い', example: 'A benevolent king.' },
-    { word: 'Ephemeral', meaning: '儚い', example: 'Ephemeral beauty.' },
-    { word: 'Pragmatic', meaning: '実用的な', example: 'A pragmatic approach.' },
+    { word: 'Deteriorate', meaning: '悪化する', example: 'His health deteriorated.', mnemonic: "The terror (terier) ate the sofa. It deteriorated." },
+    { word: 'Indifferent', meaning: '無関心な', example: 'He was indifferent to politics.', mnemonic: "In-different. Even if it's different, I don't care." },
+    { word: 'Reproach', meaning: '非難する', example: 'Don’t reproach yourself.', mnemonic: "Re-approach. Approach him again to scold him." },
+    { word: 'Versatile', meaning: '多才な', example: 'A versatile actor.', mnemonic: "Versus-tile. He can fight on any tile. Multitalented." },
+    { word: 'Eloquent', meaning: '雄弁な', example: 'An eloquent speech.', mnemonic: "Elegant fluent. Eloquent." },
+    { word: 'Superfluous', meaning: '余分な', example: 'Superfluous details.', mnemonic: "Super-flow. Overflowing. Too much." },
+    { word: 'Meticulous', meaning: '綿密な', example: 'He is meticulous about his work.', mnemonic: "Metal-ic. Precise like metal work." },
+    { word: 'Benevolent', meaning: '慈悲深い', example: 'A benevolent king.', mnemonic: "Bene (Good) + Vol (Will). Good will." },
+    { word: 'Ephemeral', meaning: '儚い', example: 'Ephemeral beauty.', mnemonic: "E-phantom. Like a phantom, it disappears quickly." },
+    { word: 'Pragmatic', meaning: '実用的な', example: 'A pragmatic approach.', mnemonic: "Plug-matic. Automatic and practical." },
   ],
   'Science': [
     { word: 'Hypothesis', meaning: '仮説', example: 'Test the hypothesis.' },
