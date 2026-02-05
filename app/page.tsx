@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { VOCAB_DATA } from '../data/vocab';
 import { audio } from '../utils/audio';
 import { THEMES, ThemeKey } from '../utils/themes';
+import { generateAIExample } from '../utils/ai';
 import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
 import ThemeSelector from '../components/ThemeSelector';
@@ -23,6 +24,7 @@ export default function Home() {
   const [hardWords, setHardWords] = useState<Set<string>>(new Set());
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isPro, setIsPro] = useState(false);
+  const [customExample, setCustomExample] = useState<string | null>(null);
   
   // Modals
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -85,6 +87,10 @@ export default function Home() {
       endSpeedRun();
     }
   }, [gameMode, gameActive, timeLeft]);
+
+  useEffect(() => {
+    setCustomExample(null);
+  }, [currentIndex, category]);
 
   const currentList = gameMode === 'speedrun' ? speedRunList : (category === 'Review' ? getReviewList() : VOCAB_DATA[category]);
   const currentItem = currentList?.[currentIndex] || { word: "All Done!", meaning: "No words left to review.", example: "Great job!" };
@@ -221,6 +227,13 @@ export default function Home() {
     setIsPro(true);
     localStorage.setItem('vocab_pro', 'true');
     // Confetti handled in modal, but we can do extra here if needed
+  };
+
+  const handleGenerateAI = () => {
+    if (!currentItem) return;
+    const aiSentence = generateAIExample(currentItem.word);
+    setCustomExample(aiSentence);
+    audio.playPop();
   };
 
   // Init Effect
@@ -452,10 +465,25 @@ export default function Home() {
 
             <div className={`transition-all duration-500 transform ${isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
               <p className={`text-3xl font-bold mb-3 ${isDark ? 'text-green-400' : 'text-green-600'}`}>{currentItem.meaning}</p>
-              {currentItem.example && (
-                <p className={`text-sm italic opacity-70`}>
-                  &quot;{currentItem.example}&quot;
-                </p>
+              {(currentItem.example || customExample) && (
+                <div className="relative group">
+                    <p className={`text-sm italic opacity-70 transition-all`}>
+                    &quot;{customExample || currentItem.example}&quot;
+                    </p>
+                    {isPro && !customExample && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleGenerateAI(); }}
+                            className="mt-2 text-[10px] bg-purple-500 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mx-auto"
+                        >
+                            <span>✨ AI Generate New Example</span>
+                        </button>
+                    )}
+                    {isPro && customExample && (
+                        <div className="mt-1 text-[10px] text-purple-500 font-bold flex items-center justify-center gap-1">
+                            <span>✨ AI Generated</span>
+                        </div>
+                    )}
+                </div>
               )}
               {currentItem.mnemonic && (
                 <div className={`mt-4 p-3 rounded-lg text-sm border ${isDark ? 'bg-indigo-900/30 border-indigo-700 text-indigo-300' : 'bg-indigo-50 border-indigo-100 text-indigo-700'}`}>
