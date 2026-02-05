@@ -1,31 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-// MVP Data: Common high-school level English words
-const VOCAB_LIST = [
-  { word: 'Ambiguous', meaning: '曖昧な', example: 'His reply was ambiguous.' },
-  { word: 'Inevitable', meaning: '避けられない', example: 'War was inevitable.' },
-  { word: 'Simultaneous', meaning: '同時の', example: 'Simultaneous interpretation.' },
-  { word: 'Reluctant', meaning: '気が進まない', example: 'He was reluctant to go.' },
-  { word: 'Subsequent', meaning: 'その後の', example: 'Subsequent events proved him wrong.' },
-  { word: 'Crucial', meaning: '重大な', example: 'A crucial decision.' },
-  { word: 'Distinguish', meaning: '区別する', example: 'Distinguish right from wrong.' },
-  { word: 'Emphasis', meaning: '強調', example: 'Emphasis on quality.' },
-  { word: 'Prohibit', meaning: '禁止する', example: 'Smoking is prohibited.' },
-  { word: 'Relieve', meaning: '和らげる', example: 'Relieve pain.' },
-];
+import { VOCAB_DATA } from '../data/vocab';
 
 export default function Home() {
+  const [category, setCategory] = useState<string>('Standard');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const currentItem = VOCAB_LIST[currentIndex];
+  const currentList = VOCAB_DATA[category];
+  const currentItem = currentList[currentIndex];
 
   const handleNext = () => {
-    const nextIndex = (currentIndex + 1) % VOCAB_LIST.length;
+    const nextIndex = (currentIndex + 1) % currentList.length;
     setCurrentIndex(nextIndex);
     setIsRevealed(false);
   };
@@ -36,6 +25,12 @@ export default function Home() {
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
+  };
+
+  const handleCategoryChange = (cat: string) => {
+    setCategory(cat);
+    setCurrentIndex(0);
+    setIsRevealed(false);
   };
 
   // Init Effect
@@ -63,7 +58,7 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRevealed, currentIndex]); 
+  }, [isRevealed, currentIndex, category]); 
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${mounted && darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
@@ -73,7 +68,7 @@ export default function Home() {
         <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center max-w-2xl mx-auto right-0">
           <div>
             <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.2</p>
+            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.3</p>
           </div>
           <button 
             onClick={toggleDarkMode}
@@ -92,15 +87,32 @@ export default function Home() {
           </button>
         </header>
 
+        {/* Category Selector */}
+        <div className="mb-6 flex gap-2 overflow-x-auto max-w-full pb-2">
+          {Object.keys(VOCAB_DATA).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => handleCategoryChange(cat)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                category === cat 
+                  ? (mounted && darkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white shadow-md shadow-blue-500/30') 
+                  : (mounted && darkMode ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-white text-gray-500 hover:bg-gray-50 shadow-sm')
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         {/* Main Card */}
         <main className={`w-full max-w-md rounded-2xl shadow-2xl p-8 text-center min-h-[400px] flex flex-col justify-between transition-all duration-300 ${mounted && darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100'}`}>
           <div className="flex-grow flex flex-col justify-center items-center relative">
             <span className={`absolute top-0 right-0 text-xs font-mono opacity-30 ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              #{currentIndex + 1} / {VOCAB_LIST.length}
+              #{currentIndex + 1} / {currentList.length}
             </span>
             
             <div className="flex items-center justify-center gap-3 mb-6">
-              <h2 className="text-5xl font-extrabold tracking-wide">{currentItem.word}</h2>
+              <h2 className="text-4xl sm:text-5xl font-extrabold tracking-wide break-all">{currentItem.word}</h2>
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
@@ -110,7 +122,7 @@ export default function Home() {
                     window.speechSynthesis.speak(utterance);
                   }
                 }}
-                className={`p-3 rounded-full transition-all active:scale-95 ${mounted && darkMode ? 'bg-gray-700 hover:bg-gray-600 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
+                className={`flex-shrink-0 p-3 rounded-full transition-all active:scale-95 ${mounted && darkMode ? 'bg-gray-700 hover:bg-gray-600 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
                 title="Listen to pronunciation"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
