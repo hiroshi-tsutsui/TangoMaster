@@ -6,3 +6,4 @@ Mission: 100 Merges.
 - [x] 001: Initialize CPO v2 Log. (Identity established).
 - [x] 002: feat(social): Challenge Friends Modal + Base Commit.
 - [x] 003: feat(retention): Unlockable Themes (Matrix @ Lvl 5, Sakura @ Lvl 10).
+- [x] 004: feat(monetization): Pro Subscription Mockup + Badge.
