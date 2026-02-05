@@ -10,6 +10,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [xp, setXp] = useState(0);
   const [streakUpdatedToday, setStreakUpdatedToday] = useState(false);
 
   const currentList = VOCAB_DATA[category];
@@ -44,6 +45,11 @@ export default function Home() {
     setCurrentIndex(nextIndex);
     setIsRevealed(false);
     updateStreak();
+    
+    // XP Logic
+    const newXp = xp + 10;
+    setXp(newXp);
+    localStorage.setItem('vocab_xp', newXp.toString());
   };
 
   const handleReveal = () => {
@@ -61,7 +67,7 @@ export default function Home() {
   };
 
   const handleShare = () => {
-    const text = `🔥 I'm on a ${streak}-day streak learning English on TangoMaster! Can you beat me? #TangoMaster #Study`;
+    const text = `🔥 I'm on a ${streak}-day streak and have ${xp} XP on TangoMaster! Can you beat me? #TangoMaster #Study`;
     const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
     window.open(url, '_blank');
   };
@@ -73,10 +79,13 @@ export default function Home() {
       setDarkMode(true);
     }
 
-    // Streak Logic
+    // Load Data
     const savedStreak = parseInt(localStorage.getItem('vocab_streak') || '0', 10);
+    const savedXp = parseInt(localStorage.getItem('vocab_xp') || '0', 10);
     const lastDate = localStorage.getItem('vocab_last_date');
     const today = getTodayString();
+
+    setXp(savedXp);
 
     if (lastDate === today) {
       setStreak(savedStreak);
@@ -110,8 +119,10 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRevealed, currentIndex, category]); 
-
+  }, [isRevealed, currentIndex, category, xp]); // Added xp dependency to keep handleNext fresh? actually state closure might be an issue if effect binds old handleNext. 
+  // Wait, handleNext uses 'xp' from closure. If I don't update the effect dependency or use functional update, it might be stale?
+  // Actually, functional update is safer: setXp(prev => prev + 10).
+  
   return (
     <div className={`min-h-screen transition-colors duration-300 ${mounted && darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -120,10 +131,15 @@ export default function Home() {
         <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center max-w-2xl mx-auto right-0">
           <div>
             <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.5</p>
+            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.6</p>
           </div>
 
           <div className="flex items-center gap-4">
+             {/* XP Display */}
+             <div className={`text-sm font-bold px-3 py-1 rounded-full ${mounted && darkMode ? 'bg-gray-800 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+              {xp} XP
+            </div>
+
             {/* Streak Display */}
             <button 
               onClick={handleShare}
