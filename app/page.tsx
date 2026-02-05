@@ -17,6 +17,7 @@ export default function Home() {
   const currentItem = currentList[currentIndex];
 
   const getTodayString = () => new Date().toISOString().split('T')[0];
+  const calculateLevel = (points: number) => Math.floor(points / 100) + 1;
 
   const updateStreak = () => {
     const today = getTodayString();
@@ -44,6 +45,20 @@ export default function Home() {
     // XP Logic
     const xpGain = known ? 20 : 5;
     const newXp = xp + xpGain;
+    
+    // Level Up Logic
+    const currentLevel = calculateLevel(xp);
+    const nextLevel = calculateLevel(newXp);
+
+    if (nextLevel > currentLevel) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(`Level Up! You are now level ${nextLevel}`);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+        alert(`🎉 LEVEL UP! \nYou reached Level ${nextLevel}! \nKeep learning! 🎓`);
+    }
+
     setXp(newXp);
     localStorage.setItem('vocab_xp', newXp.toString());
 
@@ -76,7 +91,8 @@ export default function Home() {
   };
 
   const handleShare = () => {
-    const text = `🔥 I'm on a ${streak}-day streak and have ${xp} XP on TangoMaster! Can you beat me? #TangoMaster #Study`;
+    const level = calculateLevel(xp);
+    const text = `🔥 I'm Level ${level} on a ${streak}-day streak learning English on TangoMaster! Can you beat me? #TangoMaster #Study`;
     const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
     window.open(url, '_blank');
   };
@@ -119,7 +135,7 @@ export default function Home() {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         if (isRevealed) {
-          handleNext(true); // Default to known on Enter? Or maybe just simple next for keyboard
+          handleNext(true); // Default to known on Enter
         } else {
           handleReveal();
         }
@@ -130,6 +146,8 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRevealed, currentIndex, category, xp]); 
 
+  const level = calculateLevel(xp);
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${mounted && darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -139,7 +157,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div>
               <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.8</p>
+              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.9</p>
             </div>
             <button 
               onClick={() => alert("TangoMaster Pro: Ad-free, Offline Mode, and AI Tutor coming soon!")}
@@ -150,9 +168,10 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-             {/* XP Display */}
-             <div className={`text-sm font-bold px-3 py-1 rounded-full ${mounted && darkMode ? 'bg-gray-800 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
-              {xp} XP
+             {/* XP / Level Display */}
+             <div className={`text-sm font-bold px-3 py-1 rounded-full flex gap-2 items-center ${mounted && darkMode ? 'bg-gray-800 text-purple-400' : 'bg-purple-100 text-purple-600'}`} title={`Total XP: ${xp}`}>
+               <span className="text-xs uppercase opacity-70">Lvl {level}</span>
+               <span>{xp % 100}/100</span>
             </div>
 
             {/* Streak Display */}
