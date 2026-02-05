@@ -8,6 +8,7 @@ import { THEMES, ThemeKey } from '../utils/themes';
 import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
 import ThemeSelector from '../components/ThemeSelector';
+import ProModal from '../components/ProModal';
 
 export default function Home() {
   const [category, setCategory] = useState<string>('Standard');
@@ -21,11 +22,13 @@ export default function Home() {
   const [streakUpdatedToday, setStreakUpdatedToday] = useState(false);
   const [hardWords, setHardWords] = useState<Set<string>>(new Set());
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isPro, setIsPro] = useState(false);
   
   // Modals
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
 
   // Speed Run State
   const [gameMode, setGameMode] = useState<'standard' | 'speedrun'>('standard');
@@ -214,6 +217,12 @@ export default function Home() {
     setShowChallengeModal(true);
   };
 
+  const handleSubscribe = () => {
+    setIsPro(true);
+    localStorage.setItem('vocab_pro', 'true');
+    // Confetti handled in modal, but we can do extra here if needed
+  };
+
   // Init Effect
   useEffect(() => {
     setMounted(true);
@@ -226,11 +235,13 @@ export default function Home() {
     const savedHardWords = JSON.parse(localStorage.getItem('vocab_hard_words') || '[]');
     const savedSound = localStorage.getItem('vocab_sound') !== 'false';
     const savedTheme = localStorage.getItem('vocab_theme') as ThemeKey;
+    const savedPro = localStorage.getItem('vocab_pro') === 'true';
     const today = getTodayString();
 
     setXp(savedXp);
     setHardWords(new Set(savedHardWords));
     setSoundEnabled(savedSound);
+    setIsPro(savedPro);
     audio.toggle(savedSound);
 
     // Theme init
@@ -308,10 +319,10 @@ export default function Home() {
             {/* Pro & Speed Run Buttons */}
             <div className="flex gap-2">
                 <button
-                  onClick={() => alert("TangoMaster Pro: Ad-free, Offline Mode, and AI Tutor coming soon!")}
-                  className={`hidden sm:block text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${isDark ? 'text-yellow-400 border-yellow-400 hover:bg-yellow-900/30' : 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100'}`}
+                  onClick={() => setShowProModal(true)}
+                  className={`hidden sm:block text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${isPro ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-transparent shadow-md' : (isDark ? 'text-yellow-400 border-yellow-400 hover:bg-yellow-900/30' : 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100')}`}
                 >
-                  Pro
+                  {isPro ? 'PRO MEMBER' : 'Pro'}
                 </button>
                 <button
                   onClick={gameMode === 'speedrun' ? endSpeedRun : startSpeedRun}
@@ -500,6 +511,10 @@ export default function Home() {
 
         {showThemeSelector && (
           <ThemeSelector currentTheme={theme} level={level} onSelect={handleThemeChange} onClose={() => setShowThemeSelector(false)} />
+        )}
+
+        {showProModal && (
+          <ProModal onClose={() => setShowProModal(false)} onSubscribe={handleSubscribe} />
         )}
       </div>
     </div>
