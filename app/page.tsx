@@ -119,19 +119,25 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRevealed, currentIndex, category, xp]); // Added xp dependency to keep handleNext fresh? actually state closure might be an issue if effect binds old handleNext. 
-  // Wait, handleNext uses 'xp' from closure. If I don't update the effect dependency or use functional update, it might be stale?
-  // Actually, functional update is safer: setXp(prev => prev + 10).
-  
+  }, [isRevealed, currentIndex, category, xp]); 
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${mounted && darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         
         {/* Header */}
         <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center max-w-2xl mx-auto right-0">
-          <div>
-            <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.6</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
+              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.7</p>
+            </div>
+            <button 
+              onClick={() => alert("TangoMaster Pro: Ad-free, Offline Mode, and AI Tutor coming soon!")}
+              className={`hidden sm:block text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${mounted && darkMode ? 'text-yellow-400 border-yellow-400 hover:bg-yellow-900/30' : 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100'}`}
+            >
+              Pro
+            </button>
           </div>
 
           <div className="flex items-center gap-4">
