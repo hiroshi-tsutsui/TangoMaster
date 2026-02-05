@@ -1,0 +1,56 @@
+export const THEMES = {
+  light: {
+    id: 'light',
+    name: 'Light',
+    minLevel: 0,
+    bg: 'bg-gray-50',
+    text: 'text-gray-800',
+    accent: 'blue', // For logic checks
+    headerText: 'text-blue-600',
+    cardBg: 'bg-white border-gray-100',
+    primaryBtn: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30',
+    secondaryBtn: 'bg-gray-200 hover:bg-gray-300 text-gray-700',
+    successBtn: 'bg-green-600 hover:bg-green-700 text-white shadow-green-400/50',
+  },
+  dark: {
+    id: 'dark',
+    name: 'Dark',
+    minLevel: 0,
+    bg: 'bg-gray-900',
+    text: 'text-gray-100',
+    accent: 'blue',
+    headerText: 'text-blue-400',
+    cardBg: 'bg-gray-800 border-gray-700',
+    primaryBtn: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30',
+    secondaryBtn: 'bg-gray-700 hover:bg-gray-600 text-gray-300',
+    successBtn: 'bg-green-700 hover:bg-green-600 text-white shadow-green-900/50',
+  },
+  matrix: {
+    id: 'matrix',
+    name: 'Matrix (Lvl 5)',
+    minLevel: 5,
+    bg: 'bg-black',
+    text: 'text-green-500',
+    accent: 'green',
+    headerText: 'text-green-500',
+    cardBg: 'bg-black border-green-800 border-2',
+    primaryBtn: 'bg-green-900 hover:bg-green-800 text-green-100 border border-green-500 shadow-green-500/20',
+    secondaryBtn: 'bg-black hover:bg-green-900 text-green-700 border border-green-900',
+    successBtn: 'bg-green-600 hover:bg-green-500 text-black font-bold shadow-green-500/50',
+  },
+  sakura: {
+    id: 'sakura',
+    name: 'Sakura (Lvl 10)',
+    minLevel: 10,
+    bg: 'bg-pink-50',
+    text: 'text-pink-900',
+    accent: 'pink',
+    headerText: 'text-pink-600',
+    cardBg: 'bg-white border-pink-200 border-2',
+    primaryBtn: 'bg-pink-500 hover:bg-pink-600 text-white shadow-pink-400/30',
+    secondaryBtn: 'bg-pink-100 hover:bg-pink-200 text-pink-700',
+    successBtn: 'bg-pink-600 hover:bg-pink-700 text-white shadow-pink-500/40',
+  }
+};
+
+export type ThemeKey = keyof typeof THEMES;

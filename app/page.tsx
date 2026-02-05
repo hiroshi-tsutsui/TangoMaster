@@ -4,14 +4,16 @@ import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { VOCAB_DATA } from '../data/vocab';
 import { audio } from '../utils/audio';
+import { THEMES, ThemeKey } from '../utils/themes';
 import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
+import ThemeSelector from '../components/ThemeSelector';
 
 export default function Home() {
   const [category, setCategory] = useState<string>('Standard');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [theme, setTheme] = useState<ThemeKey>('light'); // Replaces darkMode
   const [mounted, setMounted] = useState(false);
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
@@ -19,8 +21,11 @@ export default function Home() {
   const [streakUpdatedToday, setStreakUpdatedToday] = useState(false);
   const [hardWords, setHardWords] = useState<Set<string>>(new Set());
   const [soundEnabled, setSoundEnabled] = useState(true);
+  
+  // Modals
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
 
   // Speed Run State
   const [gameMode, setGameMode] = useState<'standard' | 'speedrun'>('standard');
@@ -28,6 +33,10 @@ export default function Home() {
   const [speedScore, setSpeedScore] = useState(0);
   const [gameActive, setGameActive] = useState(false);
   const [speedRunList, setSpeedRunList] = useState<any[]>([]);
+
+  // Helpers
+  const currentTheme = THEMES[theme];
+  const isDark = theme !== 'light'; // For specific conditional tweaks if needed
 
   const getReviewList = () => {
     const allWords = Object.values(VOCAB_DATA).flat();
@@ -103,7 +112,6 @@ export default function Home() {
   };
 
   const handleNext = (known: boolean) => {
-    // Speed Run Logic
     if (gameMode === 'speedrun') {
         if (known) {
             setSpeedScore(prev => prev + 1);
@@ -116,29 +124,20 @@ export default function Home() {
         return;
     }
 
-    // XP Logic
     const xpGain = known ? 20 : 5;
     const newXp = xp + xpGain;
     const newDailyXp = dailyXp + xpGain;
-
-    // Level Up Logic
     const currentLevel = calculateLevel(xp);
     const nextLevel = calculateLevel(newXp);
 
-    // Daily Quest Complete Logic
     if (dailyXp < 100 && newDailyXp >= 100) {
         audio.playLevelUp();
         confetti({ particleCount: 50, spread: 50, origin: { y: 0.2 } });
-        // Optional: Alert or toast
     }
 
     if (nextLevel > currentLevel) {
         audio.playLevelUp();
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(`Level Up! You are now level ${nextLevel}`);
             utterance.lang = 'en-US';
@@ -152,7 +151,6 @@ export default function Home() {
     localStorage.setItem('vocab_xp', newXp.toString());
     localStorage.setItem('vocab_daily_xp', newDailyXp.toString());
 
-    // Hard Words Logic
     const newHardWords = new Set(hardWords);
     if (!known) {
       audio.playHard();
@@ -166,15 +164,6 @@ export default function Home() {
     setHardWords(newHardWords);
     localStorage.setItem('vocab_hard_words', JSON.stringify(Array.from(newHardWords)));
 
-    // Analytics (MVP)
-    console.log('[Analytics] Word Answered:', {
-      word: currentItem.word,
-      category,
-      known,
-      timestamp: new Date().toISOString()
-    });
-
-    // If in Review mode and list is empty after removal
     if (category === 'Review' && known && newHardWords.size === 0) {
         setCategory('Standard');
         setCurrentIndex(0);
@@ -184,7 +173,6 @@ export default function Home() {
     }
 
     let nextIndex = (currentIndex + 1) % currentList.length;
-
     if (category === 'Review' && known) {
         if (currentIndex >= newHardWords.size) {
             nextIndex = 0;
@@ -203,8 +191,9 @@ export default function Home() {
     setIsRevealed(true);
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+  const handleThemeChange = (newTheme: ThemeKey) => {
+    setTheme(newTheme);
+    localStorage.setItem('vocab_theme', newTheme);
   };
 
   const toggleSound = () => {
@@ -215,7 +204,7 @@ export default function Home() {
   };
 
   const handleCategoryChange = (cat: string) => {
-    if (gameMode === 'speedrun') return; // Lock category during speed run
+    if (gameMode === 'speedrun') return;
     setCategory(cat);
     setCurrentIndex(0);
     setIsRevealed(false);
@@ -228,10 +217,7 @@ export default function Home() {
   // Init Effect
   useEffect(() => {
     setMounted(true);
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setDarkMode(true);
-    }
-
+    
     // Load Data
     const savedStreak = parseInt(localStorage.getItem('vocab_streak') || '0', 10);
     const savedXp = parseInt(localStorage.getItem('vocab_xp') || '0', 10);
@@ -239,12 +225,20 @@ export default function Home() {
     const lastDate = localStorage.getItem('vocab_last_date');
     const savedHardWords = JSON.parse(localStorage.getItem('vocab_hard_words') || '[]');
     const savedSound = localStorage.getItem('vocab_sound') !== 'false';
+    const savedTheme = localStorage.getItem('vocab_theme') as ThemeKey;
     const today = getTodayString();
 
     setXp(savedXp);
     setHardWords(new Set(savedHardWords));
     setSoundEnabled(savedSound);
     audio.toggle(savedSound);
+
+    // Theme init
+    if (savedTheme && THEMES[savedTheme]) {
+        setTheme(savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setTheme('dark');
+    }
 
     if (lastDate === today) {
       setStreak(savedStreak);
@@ -260,7 +254,7 @@ export default function Home() {
       } else {
         setStreak(0);
       }
-      setDailyXp(0); // Reset daily XP
+      setDailyXp(0);
       localStorage.setItem('vocab_daily_xp', '0');
       setStreakUpdatedToday(false);
     }
@@ -292,11 +286,11 @@ export default function Home() {
   const categories = ['Review', ...Object.keys(VOCAB_DATA)].filter(cat => cat !== 'Review' || hardWords.size > 0);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${mounted && darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${currentTheme.bg} ${currentTheme.text}`}>
       {/* Daily Progress Bar */}
-      <div className="w-full h-1 bg-gray-200 dark:bg-gray-800">
+      <div className={`w-full h-1 ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
         <div
-          className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500"
+          className={`h-full transition-all duration-500 bg-${currentTheme.accent}-500`}
           style={{ width: `${Math.min(100, (dailyXp / 100) * 100)}%` }}
         />
       </div>
@@ -307,21 +301,21 @@ export default function Home() {
         <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center max-w-2xl mx-auto right-0">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.10</p>
+              <h1 className={`text-xl font-bold tracking-tight ${currentTheme.headerText}`}>TangoMaster</h1>
+              <p className={`text-xs opacity-60`}>Alpha v0.10</p>
             </div>
 
             {/* Pro & Speed Run Buttons */}
             <div className="flex gap-2">
                 <button
                   onClick={() => alert("TangoMaster Pro: Ad-free, Offline Mode, and AI Tutor coming soon!")}
-                  className={`hidden sm:block text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${mounted && darkMode ? 'text-yellow-400 border-yellow-400 hover:bg-yellow-900/30' : 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100'}`}
+                  className={`hidden sm:block text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${isDark ? 'text-yellow-400 border-yellow-400 hover:bg-yellow-900/30' : 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100'}`}
                 >
                   Pro
                 </button>
                 <button
                   onClick={gameMode === 'speedrun' ? endSpeedRun : startSpeedRun}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${gameMode === 'speedrun' ? 'bg-red-500 text-white border-red-500 animate-pulse' : (mounted && darkMode ? 'text-red-400 border-red-400 hover:bg-red-900/30' : 'text-red-600 bg-red-50 border-red-200 hover:bg-red-100')}`}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors uppercase tracking-wider ${gameMode === 'speedrun' ? 'bg-red-500 text-white border-red-500 animate-pulse' : (isDark ? 'text-red-400 border-red-400 hover:bg-red-900/30' : 'text-red-600 bg-red-50 border-red-200 hover:bg-red-100')}`}
                 >
                   {gameMode === 'speedrun' ? `${timeLeft}s` : 'Speed Run'}
                 </button>
@@ -331,7 +325,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
              {/* XP / Level Display - Hide in Speed Run */}
              {gameMode !== 'speedrun' && (
-                <div className={`text-sm font-bold px-3 py-1 rounded-full flex gap-2 items-center ${mounted && darkMode ? 'bg-gray-800 text-purple-400' : 'bg-purple-100 text-purple-600'}`} title={`Total XP: ${xp}`}>
+                <div className={`text-sm font-bold px-3 py-1 rounded-full flex gap-2 items-center ${isDark ? 'bg-gray-800 text-purple-400' : 'bg-purple-100 text-purple-600'}`} title={`Total XP: ${xp}`}>
                 <span className="text-xs uppercase opacity-70">Lvl {level}</span>
                 <span>{xp % 100}/100</span>
                 </div>
@@ -346,7 +340,7 @@ export default function Home() {
 
              <button
                onClick={() => setShowLeaderboard(true)}
-               className={`p-2 rounded-full ${mounted && darkMode ? 'bg-gray-800 text-yellow-500 hover:bg-gray-700' : 'bg-white text-yellow-600 hover:bg-gray-100'} shadow-sm transition-all`}
+               className={`p-2 rounded-full ${isDark ? 'bg-gray-800 text-yellow-500 hover:bg-gray-700' : 'bg-white text-yellow-600 hover:bg-gray-100'} shadow-sm transition-all`}
                title="Leaderboard"
              >
                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -369,7 +363,7 @@ export default function Home() {
 
             <button
               onClick={toggleSound}
-              className={`p-2 rounded-full ${mounted && darkMode ? 'bg-gray-800 text-pink-400 hover:bg-gray-700' : 'bg-white text-pink-500 hover:bg-gray-100'} shadow-sm transition-all`}
+              className={`p-2 rounded-full ${isDark ? 'bg-gray-800 text-pink-400 hover:bg-gray-700' : 'bg-white text-pink-500 hover:bg-gray-100'} shadow-sm transition-all`}
               aria-label="Toggle Sound"
             >
               {soundEnabled ? (
@@ -383,25 +377,20 @@ export default function Home() {
               )}
             </button>
 
+            {/* Theme Selector Button (Was Dark Mode Toggle) */}
             <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-full ${mounted && darkMode ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'} shadow-sm transition-all`}
-              aria-label="Toggle Dark Mode"
+              onClick={() => setShowThemeSelector(true)}
+              className={`p-2 rounded-full ${isDark ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'} shadow-sm transition-all`}
+              aria-label="Change Theme"
             >
-              {mounted && darkMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.635m0 0a3.375 3.375 0 0 1-3.996-3.996m3.996 3.996a4.5 4.5 0 0 1 1.487 7.378c-.765.684-1.62.845-2.228.672-.882-.253-1.616-.764-2.179-1.428m-3.076-4.62a3.375 3.375 0 0 0-3.996-3.996" />
                 </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-                </svg>
-              )}
             </button>
           </div>
         </header>
 
-        {/* Category Selector - Hide in Speed Run */}
+        {/* Category Selector */}
         <div className={`mb-6 flex gap-2 overflow-x-auto max-w-full pb-2 ${gameMode === 'speedrun' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
           {categories.map((cat) => (
             <button
@@ -409,8 +398,8 @@ export default function Home() {
               onClick={() => handleCategoryChange(cat)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                 category === cat
-                  ? (mounted && darkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white shadow-md shadow-blue-500/30')
-                  : (mounted && darkMode ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-white text-gray-500 hover:bg-gray-50 shadow-sm')
+                  ? currentTheme.primaryBtn
+                  : currentTheme.secondaryBtn
               }`}
             >
               {cat}
@@ -424,9 +413,9 @@ export default function Home() {
         </div>
 
         {/* Main Card */}
-        <main className={`w-full max-w-md rounded-2xl shadow-2xl p-8 text-center min-h-[400px] flex flex-col justify-between transition-all duration-300 ${mounted && darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100'} ${gameMode === 'speedrun' ? 'border-red-500 ring-2 ring-red-500/50' : ''}`}>
+        <main className={`w-full max-w-md rounded-2xl shadow-2xl p-8 text-center min-h-[400px] flex flex-col justify-between transition-all duration-300 ${currentTheme.cardBg} ${gameMode === 'speedrun' ? 'border-red-500 ring-2 ring-red-500/50' : ''}`}>
           <div className="flex-grow flex flex-col justify-center items-center relative">
-            <span className={`absolute top-0 right-0 text-xs font-mono opacity-30 ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <span className={`absolute top-0 right-0 text-xs font-mono opacity-30`}>
               #{currentIndex + 1} / {currentList.length}
             </span>
 
@@ -441,7 +430,7 @@ export default function Home() {
                     window.speechSynthesis.speak(utterance);
                   }
                 }}
-                className={`flex-shrink-0 p-3 rounded-full transition-all active:scale-95 ${mounted && darkMode ? 'bg-gray-700 hover:bg-gray-600 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
+                className={`flex-shrink-0 p-3 rounded-full transition-all active:scale-95 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
                 title="Listen to pronunciation"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
@@ -451,14 +440,14 @@ export default function Home() {
             </div>
 
             <div className={`transition-all duration-500 transform ${isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
-              <p className={`text-3xl font-bold mb-3 ${mounted && darkMode ? 'text-green-400' : 'text-green-600'}`}>{currentItem.meaning}</p>
+              <p className={`text-3xl font-bold mb-3 ${isDark ? 'text-green-400' : 'text-green-600'}`}>{currentItem.meaning}</p>
               {currentItem.example && (
-                <p className={`text-sm italic ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`text-sm italic opacity-70`}>
                   &quot;{currentItem.example}&quot;
                 </p>
               )}
               {currentItem.mnemonic && (
-                <div className={`mt-4 p-3 rounded-lg text-sm border ${mounted && darkMode ? 'bg-indigo-900/30 border-indigo-700 text-indigo-300' : 'bg-indigo-50 border-indigo-100 text-indigo-700'}`}>
+                <div className={`mt-4 p-3 rounded-lg text-sm border ${isDark ? 'bg-indigo-900/30 border-indigo-700 text-indigo-300' : 'bg-indigo-50 border-indigo-100 text-indigo-700'}`}>
                     <span className="font-bold mr-2">🧠 Memory Hook:</span>
                     {currentItem.mnemonic}
                 </div>
@@ -470,7 +459,7 @@ export default function Home() {
             {!isRevealed ? (
               <button
                 onClick={handleReveal}
-                className={`w-full text-white font-bold py-4 px-6 rounded-xl transition-all transform active:scale-95 shadow-lg ${gameMode === 'speedrun' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'}`}
+                className={`w-full text-white font-bold py-4 px-6 rounded-xl transition-all transform active:scale-95 shadow-lg ${gameMode === 'speedrun' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' : currentTheme.primaryBtn}`}
               >
                 Reveal Meaning
               </button>
@@ -478,13 +467,13 @@ export default function Home() {
               <div className="flex gap-3">
                 <button
                   onClick={() => handleNext(false)}
-                  className={`flex-1 font-bold py-4 px-4 rounded-xl transition-all transform active:scale-95 shadow-lg ${mounted && darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                  className={`flex-1 font-bold py-4 px-4 rounded-xl transition-all transform active:scale-95 shadow-lg ${currentTheme.secondaryBtn}`}
                 >
                   {gameMode === 'speedrun' ? 'Skip' : 'Hard (+5 XP)'}
                 </button>
                 <button
                   onClick={() => handleNext(true)}
-                  className={`flex-1 font-bold py-4 px-4 rounded-xl transition-all transform active:scale-95 shadow-lg ${mounted && darkMode ? 'bg-green-700 hover:bg-green-600 text-white shadow-green-900/50' : 'bg-green-600 hover:bg-green-700 text-white shadow-green-400/50'}`}
+                  className={`flex-1 font-bold py-4 px-4 rounded-xl transition-all transform active:scale-95 shadow-lg ${currentTheme.successBtn}`}
                 >
                   {gameMode === 'speedrun' ? 'Got it! (+1)' : 'I Knew It! (+20 XP)'}
                 </button>
@@ -492,7 +481,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className={`mt-4 text-xs ${mounted && darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          <div className={`mt-4 text-xs opacity-50`}>
             Tip: Press <span className="font-bold border border-current px-1 rounded">Space</span> to reveal/next
           </div>
         </main>
@@ -507,6 +496,10 @@ export default function Home() {
 
         {showChallengeModal && (
           <ChallengeModal streak={streak} level={level} onClose={() => setShowChallengeModal(false)} />
+        )}
+
+        {showThemeSelector && (
+          <ThemeSelector currentTheme={theme} level={level} onSelect={handleThemeChange} onClose={() => setShowThemeSelector(false)} />
         )}
       </div>
     </div>
