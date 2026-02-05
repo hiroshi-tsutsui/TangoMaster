@@ -226,6 +226,7 @@ export default function Home() {
   const handleSubscribe = () => {
     setIsPro(true);
     localStorage.setItem('vocab_pro', 'true');
+    audio.playChime();
     // Confetti handled in modal, but we can do extra here if needed
   };
 

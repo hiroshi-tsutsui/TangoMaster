@@ -62,6 +62,15 @@ class AudioEngine {
     setTimeout(() => this.playTone(600, 'sine', 0.1, 0.1), 200);
     setTimeout(() => this.playTone(800, 'sine', 0.4, 0.1), 300);
   }
+
+  playChime() {
+    if (!this.enabled) return;
+    const now = this.ctx?.currentTime || 0;
+    // Magical Arpeggio
+    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+        setTimeout(() => this.playTone(freq, 'sine', 0.5, 0.05), i * 80);
+    });
+  }
 }
 
 export const audio = new AudioEngine();
