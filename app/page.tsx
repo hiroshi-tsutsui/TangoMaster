@@ -40,16 +40,25 @@ export default function Home() {
     localStorage.setItem('vocab_last_date', today);
   };
 
-  const handleNext = () => {
+  const handleNext = (known: boolean) => {
+    // XP Logic
+    const xpGain = known ? 20 : 5;
+    const newXp = xp + xpGain;
+    setXp(newXp);
+    localStorage.setItem('vocab_xp', newXp.toString());
+
+    // Analytics (MVP)
+    console.log('[Analytics] Word Answered:', { 
+      word: currentItem.word, 
+      category, 
+      known, 
+      timestamp: new Date().toISOString() 
+    });
+
     const nextIndex = (currentIndex + 1) % currentList.length;
     setCurrentIndex(nextIndex);
     setIsRevealed(false);
     updateStreak();
-    
-    // XP Logic
-    const newXp = xp + 10;
-    setXp(newXp);
-    localStorage.setItem('vocab_xp', newXp.toString());
   };
 
   const handleReveal = () => {
@@ -110,7 +119,7 @@ export default function Home() {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         if (isRevealed) {
-          handleNext();
+          handleNext(true); // Default to known on Enter? Or maybe just simple next for keyboard
         } else {
           handleReveal();
         }
@@ -130,7 +139,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div>
               <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.7</p>
+              <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.8</p>
             </div>
             <button 
               onClick={() => alert("TangoMaster Pro: Ad-free, Offline Mode, and AI Tutor coming soon!")}
@@ -239,12 +248,20 @@ export default function Home() {
                 Reveal Meaning
               </button>
             ) : (
-              <button
-                onClick={handleNext}
-                className={`w-full font-bold py-4 px-6 rounded-xl transition-all transform active:scale-95 shadow-lg ${mounted && darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white shadow-gray-900/50' : 'bg-gray-900 hover:bg-black text-white shadow-gray-400/50'}`}
-              >
-                Next Word →
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleNext(false)}
+                  className={`flex-1 font-bold py-4 px-4 rounded-xl transition-all transform active:scale-95 shadow-lg ${mounted && darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                >
+                  Hard (+5 XP)
+                </button>
+                <button
+                  onClick={() => handleNext(true)}
+                  className={`flex-1 font-bold py-4 px-4 rounded-xl transition-all transform active:scale-95 shadow-lg ${mounted && darkMode ? 'bg-green-700 hover:bg-green-600 text-white shadow-green-900/50' : 'bg-green-600 hover:bg-green-700 text-white shadow-green-400/50'}`}
+                >
+                  I Knew It! (+20 XP)
+                </button>
+              </div>
             )}
           </div>
           
