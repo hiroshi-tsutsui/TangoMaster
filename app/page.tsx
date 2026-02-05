@@ -10,6 +10,7 @@ import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
 import ThemeSelector from '../components/ThemeSelector';
 import ProModal from '../components/ProModal';
+import ProfileModal from '../components/ProfileModal';
 
 export default function Home() {
   const [category, setCategory] = useState<string>('Standard');
@@ -26,11 +27,17 @@ export default function Home() {
   const [isPro, setIsPro] = useState(false);
   const [customExample, setCustomExample] = useState<string | null>(null);
   
+  // Profile State
+  const [username, setUsername] = useState('Guest');
+  const [avatar, setAvatar] = useState('🎓');
+  const [joinDate, setJoinDate] = useState('');
+  
   // Modals
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Speed Run State
   const [gameMode, setGameMode] = useState<'standard' | 'speedrun'>('standard');
@@ -237,6 +244,13 @@ export default function Home() {
     audio.playPop();
   };
 
+  const handleSaveProfile = (name: string, newAvatar: string) => {
+    setUsername(name);
+    setAvatar(newAvatar);
+    localStorage.setItem('vocab_username', name);
+    localStorage.setItem('vocab_avatar', newAvatar);
+  };
+
   // Init Effect
   useEffect(() => {
     setMounted(true);
@@ -250,13 +264,25 @@ export default function Home() {
     const savedSound = localStorage.getItem('vocab_sound') !== 'false';
     const savedTheme = localStorage.getItem('vocab_theme') as ThemeKey;
     const savedPro = localStorage.getItem('vocab_pro') === 'true';
+    const savedUsername = localStorage.getItem('vocab_username') || 'Guest';
+    const savedAvatar = localStorage.getItem('vocab_avatar') || '🎓';
+    const savedJoinDate = localStorage.getItem('vocab_join_date');
     const today = getTodayString();
 
     setXp(savedXp);
     setHardWords(new Set(savedHardWords));
     setSoundEnabled(savedSound);
     setIsPro(savedPro);
+    setUsername(savedUsername);
+    setAvatar(savedAvatar);
     audio.toggle(savedSound);
+
+    if (!savedJoinDate) {
+        localStorage.setItem('vocab_join_date', today);
+        setJoinDate(today);
+    } else {
+        setJoinDate(savedJoinDate);
+    }
 
     // Theme init
     if (savedTheme && THEMES[savedTheme]) {
@@ -349,12 +375,16 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-             {/* XP / Level Display - Hide in Speed Run */}
+             {/* XP / Level / Profile Display - Hide in Speed Run */}
              {gameMode !== 'speedrun' && (
-                <div className={`text-sm font-bold px-3 py-1 rounded-full flex gap-2 items-center ${isDark ? 'bg-gray-800 text-purple-400' : 'bg-purple-100 text-purple-600'}`} title={`Total XP: ${xp}`}>
-                <span className="text-xs uppercase opacity-70">Lvl {level}</span>
-                <span>{xp % 100}/100</span>
-                </div>
+                <button 
+                    onClick={() => setShowProfileModal(true)}
+                    className={`text-sm font-bold px-3 py-1 rounded-full flex gap-2 items-center transition-transform hover:scale-105 ${isDark ? 'bg-gray-800 text-purple-400 hover:bg-gray-700' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`} 
+                    title="View Profile"
+                >
+                    <span className="text-base">{avatar}</span>
+                    <span className="text-xs uppercase opacity-70">Lvl {level}</span>
+                </button>
              )}
 
              {/* Score Display - Show in Speed Run */}
@@ -545,6 +575,22 @@ export default function Home() {
 
         {showProModal && (
           <ProModal onClose={() => setShowProModal(false)} onSubscribe={handleSubscribe} />
+        )}
+
+        {showProfileModal && (
+          <ProfileModal 
+            username={username}
+            avatar={avatar}
+            stats={{
+              xp,
+              streak,
+              level,
+              joinDate,
+              wordsLearned: Math.floor(xp / 15) // Estimation for now
+            }}
+            onSave={handleSaveProfile}
+            onClose={() => setShowProfileModal(false)}
+          />
         )}
       </div>
     </div>
