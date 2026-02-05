@@ -43,17 +43,26 @@ class AudioEngine {
     osc.stop(this.ctx.currentTime + duration);
   }
 
+  private vibrate(pattern: number | number[]) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(pattern);
+    }
+  }
+
   playPop() {
     this.playTone(600, 'sine', 0.1, 0.05);
+    this.vibrate(5);
   }
 
   playSuccess() {
     this.playTone(800, 'sine', 0.1, 0.05);
     setTimeout(() => this.playTone(1200, 'sine', 0.2, 0.05), 100);
+    this.vibrate(10);
   }
 
   playHard() {
     this.playTone(200, 'square', 0.15, 0.03);
+    this.vibrate(30);
   }
 
   playLevelUp() {
@@ -61,6 +70,7 @@ class AudioEngine {
     setTimeout(() => this.playTone(500, 'sine', 0.1, 0.1), 100);
     setTimeout(() => this.playTone(600, 'sine', 0.1, 0.1), 200);
     setTimeout(() => this.playTone(800, 'sine', 0.4, 0.1), 300);
+    this.vibrate([10, 50, 10, 50]);
   }
 
   playChime() {

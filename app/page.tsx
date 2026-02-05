@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { VOCAB_DATA } from '../data/vocab';
 import { audio } from '../utils/audio';
@@ -45,6 +45,44 @@ export default function Home() {
   const [speedScore, setSpeedScore] = useState(0);
   const [gameActive, setGameActive] = useState(false);
   const [speedRunList, setSpeedRunList] = useState<any[]>([]);
+
+  // Swipe State
+  const touchStartRef = useRef<{ x: number, y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+    };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - touchStartRef.current.x;
+    const deltaY = endY - touchStartRef.current.y;
+
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 100) {
+        // Horizontal Swipe
+        if (isRevealed) {
+            if (deltaX > 0) {
+                // Right -> Known
+                handleNext(true);
+            } else {
+                // Left -> Hard
+                handleNext(false);
+            }
+        }
+    } else if (Math.abs(deltaY) > 50 && Math.abs(deltaX) < 100) {
+        // Vertical Swipe
+        if (deltaY < 0 && !isRevealed) {
+            // Swipe Up -> Reveal
+            handleReveal();
+        }
+    }
+    touchStartRef.current = null;
+  };
 
   // Helpers
   const currentTheme = THEMES[theme];
@@ -469,7 +507,11 @@ export default function Home() {
         </div>
 
         {/* Main Card */}
-        <main className={`w-full max-w-md rounded-2xl shadow-2xl p-8 text-center min-h-[400px] flex flex-col justify-between transition-all duration-300 ${currentTheme.cardBg} ${gameMode === 'speedrun' ? 'border-red-500 ring-2 ring-red-500/50' : ''}`}>
+        <main 
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            className={`w-full max-w-md rounded-2xl shadow-2xl p-8 text-center min-h-[400px] flex flex-col justify-between transition-all duration-300 ${currentTheme.cardBg} ${gameMode === 'speedrun' ? 'border-red-500 ring-2 ring-red-500/50' : ''}`}
+        >
           <div key={currentIndex} className="flex-grow flex flex-col justify-center items-center relative animate-slide-in">
             <span className={`absolute top-0 right-0 text-xs font-mono opacity-30`}>
               #{currentIndex + 1} / {currentList.length}
@@ -553,7 +595,7 @@ export default function Home() {
           </div>
 
           <div className={`mt-4 text-xs opacity-50`}>
-            Tip: Press <span className="font-bold border border-current px-1 rounded">Space</span> to reveal/next
+            Tip: Press <span className="font-bold border border-current px-1 rounded">Space</span> or <span className="font-bold">Swipe</span> to play
           </div>
         </main>
 
