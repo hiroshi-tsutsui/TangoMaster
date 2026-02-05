@@ -40,5 +40,17 @@ export const VOCAB_DATA: Record<string, VocabItem[]> = {
     { word: 'Benevolent', meaning: '慈悲深い', example: 'A benevolent king.' },
     { word: 'Ephemeral', meaning: '儚い', example: 'Ephemeral beauty.' },
     { word: 'Pragmatic', meaning: '実用的な', example: 'A pragmatic approach.' },
+  ],
+  'Science': [
+    { word: 'Hypothesis', meaning: '仮説', example: 'Test the hypothesis.' },
+    { word: 'Molecule', meaning: '分子', example: 'Water molecule.' },
+    { word: 'Organism', meaning: '有機体/生物', example: 'A living organism.' },
+    { word: 'Synthesis', meaning: '合成/統合', example: 'Protein synthesis.' },
+    { word: 'Equilibrium', meaning: '均衡/平衡', example: 'Market equilibrium.' },
+    { word: 'Chromosome', meaning: '染色体', example: 'Human chromosomes.' },
+    { word: 'Velocity', meaning: '速度', example: 'High velocity.' },
+    { word: 'Fossil', meaning: '化石', example: 'Dinosaur fossils.' },
+    { word: 'Galaxy', meaning: '銀河', example: 'The Milky Way galaxy.' },
+    { word: 'Kinetic', meaning: '運動の', example: 'Kinetic energy.' },
   ]
 };
