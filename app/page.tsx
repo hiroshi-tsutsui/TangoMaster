@@ -22,16 +22,6 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setMounted(true);
-      // Check system preference
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setDarkMode(true);
-      }
-    }, 0);
-  }, []);
-
   const currentItem = VOCAB_LIST[currentIndex];
 
   const handleNext = () => {
@@ -47,6 +37,33 @@ export default function Home() {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
+
+  // Init Effect
+  useEffect(() => {
+    setTimeout(() => {
+      setMounted(true);
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setDarkMode(true);
+      }
+    }, 0);
+  }, []);
+
+  // Keyboard Effect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        if (isRevealed) {
+          handleNext();
+        } else {
+          handleReveal();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRevealed, currentIndex]); 
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${mounted && darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
@@ -82,7 +99,25 @@ export default function Home() {
               #{currentIndex + 1} / {VOCAB_LIST.length}
             </span>
             
-            <h2 className="text-5xl font-extrabold mb-6 tracking-wide">{currentItem.word}</h2>
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <h2 className="text-5xl font-extrabold tracking-wide">{currentItem.word}</h2>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(currentItem.word);
+                    utterance.lang = 'en-US';
+                    window.speechSynthesis.speak(utterance);
+                  }
+                }}
+                className={`p-3 rounded-full transition-all active:scale-95 ${mounted && darkMode ? 'bg-gray-700 hover:bg-gray-600 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
+                title="Listen to pronunciation"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                </svg>
+              </button>
+            </div>
             
             <div className={`transition-all duration-500 transform ${isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
               <p className={`text-3xl font-bold mb-3 ${mounted && darkMode ? 'text-green-400' : 'text-green-600'}`}>{currentItem.meaning}</p>
@@ -110,6 +145,10 @@ export default function Home() {
                 Next Word →
               </button>
             )}
+          </div>
+          
+          <div className={`mt-4 text-xs ${mounted && darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            Tip: Press <span className="font-bold border border-current px-1 rounded">Space</span> to reveal/next
           </div>
         </main>
 
