@@ -8,3 +8,4 @@ Mission: 100 Merges.
 - [x] 003: feat(retention): Unlockable Themes (Matrix @ Lvl 5, Sakura @ Lvl 10).
 - [x] 004: feat(monetization): Pro Subscription Mockup + Badge.
 - [x] 005: feat(content): AI Example Sentence Generator (Pro Feature).
+- [x] 006: fix(ui): Responsive Pro Button + Card Slide Animations.
