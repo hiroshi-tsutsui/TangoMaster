@@ -64,5 +64,17 @@ export const VOCAB_DATA: Record<string, VocabItem[]> = {
     { word: 'Sovereign', meaning: '君主/主権者', example: 'A sovereign nation.' },
     { word: 'Feudal', meaning: '封建的な', example: 'Feudal society.' },
     { word: 'Renaissance', meaning: 'ルネサンス/再生', example: 'The Italian Renaissance.' },
+  ],
+  'Slang (Gen Z)': [
+    { word: 'Rizz', meaning: '人を惹きつける力 (Charisma)', example: 'He has infinite rizz.' },
+    { word: 'No Cap', meaning: 'マジで (For real)', example: 'That food was amazing, no cap.' },
+    { word: 'Ghost', meaning: '既読無視する (Stop replying)', example: 'He ghosted me after one date.' },
+    { word: 'Flex', meaning: '自慢する (Show off)', example: 'Stop flexing your watch.' },
+    { word: 'Sus', meaning: '怪しい (Suspicious)', example: 'That guy acting sus.' },
+    { word: 'Tea', meaning: '噂話 (Gossip)', example: 'Spill the tea!' },
+    { word: 'Salty', meaning: 'イライラしている (Bitter)', example: 'He is salty about losing.' },
+    { word: 'Cringe', meaning: 'ドン引き (Embarrassing)', example: 'That video was so cringe.' },
+    { word: 'Vibe', meaning: '雰囲気/ノリ (Mood)', example: 'Good vibes only.' },
+    { word: 'Stan', meaning: '熱狂的なファン (Super fan)', example: 'I stan this artist.' },
   ]
 };
