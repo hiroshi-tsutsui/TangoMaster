@@ -277,7 +277,7 @@ export default function Home() {
 
   const handleGenerateAI = () => {
     if (!currentItem) return;
-    const aiSentence = generateAIExample(currentItem.word);
+    const aiSentence = generateAIExample(currentItem.word, category);
     setCustomExample(aiSentence);
     audio.playPop();
   };
