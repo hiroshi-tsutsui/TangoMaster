@@ -9,14 +9,41 @@ export default function Home() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [streakUpdatedToday, setStreakUpdatedToday] = useState(false);
 
   const currentList = VOCAB_DATA[category];
   const currentItem = currentList[currentIndex];
+
+  const getTodayString = () => new Date().toISOString().split('T')[0];
+
+  const updateStreak = () => {
+    const today = getTodayString();
+    const lastDate = localStorage.getItem('vocab_last_date');
+    const savedStreak = parseInt(localStorage.getItem('vocab_streak') || '0', 10);
+
+    if (lastDate === today) return; // Already updated today
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toISOString().split('T')[0];
+
+    let newStreak = 1;
+    if (lastDate === yesterdayString) {
+      newStreak = savedStreak + 1;
+    }
+
+    setStreak(newStreak);
+    setStreakUpdatedToday(true);
+    localStorage.setItem('vocab_streak', newStreak.toString());
+    localStorage.setItem('vocab_last_date', today);
+  };
 
   const handleNext = () => {
     const nextIndex = (currentIndex + 1) % currentList.length;
     setCurrentIndex(nextIndex);
     setIsRevealed(false);
+    updateStreak();
   };
 
   const handleReveal = () => {
@@ -35,12 +62,31 @@ export default function Home() {
 
   // Init Effect
   useEffect(() => {
-    setTimeout(() => {
-      setMounted(true);
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setDarkMode(true);
+    setMounted(true);
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setDarkMode(true);
+    }
+
+    // Streak Logic
+    const savedStreak = parseInt(localStorage.getItem('vocab_streak') || '0', 10);
+    const lastDate = localStorage.getItem('vocab_last_date');
+    const today = getTodayString();
+
+    if (lastDate === today) {
+      setStreak(savedStreak);
+      setStreakUpdatedToday(true);
+    } else {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayString = yesterday.toISOString().split('T')[0];
+
+      if (lastDate === yesterdayString) {
+        setStreak(savedStreak);
+      } else {
+        setStreak(0);
       }
-    }, 0);
+      setStreakUpdatedToday(false);
+    }
   }, []);
 
   // Keyboard Effect
@@ -68,23 +114,34 @@ export default function Home() {
         <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center max-w-2xl mx-auto right-0">
           <div>
             <h1 className={`text-xl font-bold tracking-tight ${mounted && darkMode ? 'text-blue-400' : 'text-blue-600'}`}>TangoMaster</h1>
-            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.3</p>
+            <p className={`text-xs ${mounted && darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Alpha v0.4</p>
           </div>
-          <button 
-            onClick={toggleDarkMode}
-            className={`p-2 rounded-full ${mounted && darkMode ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'} shadow-sm transition-all`}
-            aria-label="Toggle Dark Mode"
-          >
-            {mounted && darkMode ? (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+
+          <div className="flex items-center gap-4">
+            {/* Streak Display */}
+            <div className={`flex items-center gap-1 font-bold ${streakUpdatedToday ? 'text-orange-500' : 'text-gray-400'}`} title="Daily Streak">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-5 h-5 ${streakUpdatedToday ? 'animate-pulse' : ''}`}>
+                <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clipRule="evenodd" />
               </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-              </svg>
-            )}
-          </button>
+              <span>{streak}</span>
+            </div>
+
+            <button 
+              onClick={toggleDarkMode}
+              className={`p-2 rounded-full ${mounted && darkMode ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'} shadow-sm transition-all`}
+              aria-label="Toggle Dark Mode"
+            >
+              {mounted && darkMode ? (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </header>
 
         {/* Category Selector */}
