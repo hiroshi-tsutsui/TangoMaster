@@ -52,5 +52,17 @@ export const VOCAB_DATA: Record<string, VocabItem[]> = {
     { word: 'Fossil', meaning: '化石', example: 'Dinosaur fossils.' },
     { word: 'Galaxy', meaning: '銀河', example: 'The Milky Way galaxy.' },
     { word: 'Kinetic', meaning: '運動の', example: 'Kinetic energy.' },
+  ],
+  'History': [
+    { word: 'Dynasty', meaning: '王朝', example: 'The Ming Dynasty.' },
+    { word: 'Revolution', meaning: '革命', example: 'The Industrial Revolution.' },
+    { word: 'Civilization', meaning: '文明', example: 'Ancient civilization.' },
+    { word: 'Artifact', meaning: '人工遺物/工芸品', example: 'Historical artifacts.' },
+    { word: 'Colony', meaning: '植民地', example: 'A British colony.' },
+    { word: 'Empire', meaning: '帝国', example: 'The Roman Empire.' },
+    { word: 'Medieval', meaning: '中世の', example: 'Medieval castles.' },
+    { word: 'Sovereign', meaning: '君主/主権者', example: 'A sovereign nation.' },
+    { word: 'Feudal', meaning: '封建的な', example: 'Feudal society.' },
+    { word: 'Renaissance', meaning: 'ルネサンス/再生', example: 'The Italian Renaissance.' },
   ]
 };
